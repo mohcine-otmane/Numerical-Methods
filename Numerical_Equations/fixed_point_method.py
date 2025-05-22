@@ -9,30 +9,31 @@ def latex_to_python(expr):
     expr = re.sub(r'\\[a-zA-Z]+{(.*?)}', r'\1', expr)
     return expr
 
-def newton_method(f, df, x0, tol=1e-6, max_iter=100):
+def fixed_point_method(g, x0, tol=1e-6, max_iter=100):
     x = x0
     for i in range(max_iter):
-        fx = f(x)
-        if abs(fx) < tol:
-            return x
-        dfx = df(x)
-        if dfx == 0:
-            raise ValueError("Derivative is zero. No solution found.")
-        x = x - fx/dfx
-    raise RuntimeError(f"Failed to converge after {max_iter} iterations")
+        x_new = g(x)
+        if abs(x_new - x) < tol:
+            return x_new
+        x = x_new
+    raise RuntimeError(f"Failed to converge after {max_iter} iterations, try a different g(x) transformation")
 
 def create_function(expression):
     expression = latex_to_python(expression)
     return lambda x: eval(expression, {"x": x, "math": math})
 
 def get_user_input():
-    print("\nNewton-Raphson Method")
-    print("For a function f(x), the method uses iteration formula:")
-    print("x_{n+1} = x_n - \\frac{f(x_n)}{f'(x_n)}")
-    print("\nEnter function f(x) in LaTeX format (e.g., x^2 - 4):")
-    f_expr = input("f(x) = ")
-    print("\nEnter derivative f'(x) in LaTeX format (e.g., 2x):")
-    df_expr = input("f'(x) = ")
+    print("\nFixed Point Method")
+    print("For equation f(x) = 0, rewrite it as x = g(x)")
+    print("The method uses simple iteration:")
+    print("x_{n+1} = g(x_n)")
+    print("\nConvergence requires |g'(x)| < 1 near the solution")
+    print("\nExample: For equation x^2 - 4 = 0")
+    print("Rewrite as:")
+    print("1) x = \\sqrt{4} or")
+    print("2) x = \\frac{x^2 + 4}{2}")
+    print("\nEnter iteration function g(x) in LaTeX format:")
+    g_expr = input("g(x) = ")
     print("\nEnter initial guess x_0 (can use \\frac{a}{b} for fractions):")
     x0_expr = input("x_0 = ")
     
@@ -42,17 +43,16 @@ def get_user_input():
     except Exception as e:
         raise ValueError(f"Invalid initial guess. Use LaTeX format (e.g., \\frac{{1}}{{2}} for 1/2): {str(e)}")
     
-    f = create_function(f_expr)
-    df = create_function(df_expr)
-    return f, df, x0
+    g = create_function(g_expr)
+    return g, x0
 
 if __name__ == "__main__":
     try:
-        print("\nNewton-Raphson Method for Root Finding")
-        print("=====================================")
-        f, df, x0 = get_user_input()
-        result = newton_method(f, df, x0)
-        print(f"\nRoot found: {result}")
+        print("\nFixed Point Method for Root Finding")
+        print("==================================")
+        g, x0 = get_user_input()
+        result = fixed_point_method(g, x0)
+        print(f"\nFixed point found: {result}")
     except ValueError as e:
         print(f"Error: {e}")
     except RuntimeError as e:
