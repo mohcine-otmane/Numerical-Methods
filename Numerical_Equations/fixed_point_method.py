@@ -1,13 +1,9 @@
 import math
-import re
+import sys
+import os
 
-def latex_to_python(expr):
-    expr = re.sub(r'\((.*?)\)\^(\d+)', r'(\1)**\2', expr)
-    expr = re.sub(r'\\frac{(.*?)}{(.*?)}', r'(\1)/(\2)', expr)
-    expr = re.sub(r'\\sqrt{(.*?)}', r'math.sqrt(\1)', expr)
-    expr = re.sub(r'(\w+)\^(\d+)', r'\1**\2', expr)
-    expr = re.sub(r'\\[a-zA-Z]+{(.*?)}', r'\1', expr)
-    return expr
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from latex_utils import latex_to_python, create_function
 
 def fixed_point_method(g, x0, tol=1e-6, max_iter=100):
     x = x0
@@ -17,10 +13,6 @@ def fixed_point_method(g, x0, tol=1e-6, max_iter=100):
             return x_new
         x = x_new
     raise RuntimeError(f"Failed to converge after {max_iter} iterations, try a different g(x) transformation")
-
-def create_function(expression):
-    expression = latex_to_python(expression)
-    return lambda x: eval(expression, {"x": x, "math": math})
 
 def get_user_input():
     print("\nFixed Point Method")
